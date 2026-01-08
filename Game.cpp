@@ -68,6 +68,7 @@ struct Board {// главное отличие структуры от клас�
         vector<Board::Ship>& getShips() { return ships; }
         int shipPrice(int len) const {
             switch (len) {
+            case 1: return 30;
             case 2: return 60;
             case 3: return 90;
             case 4: return 150;
@@ -76,7 +77,6 @@ struct Board {// главное отличие структуры от клас�
         }
         //Добавить проверку, что x1y1 лежит рядом с xy
         // xy - начальная позиция, x1y1 - направление корабля, len - его длинна
-
         bool CanPlaceShip(int x, int y, int x1, int y1, int len) {
             bool checker = true;
             int startlen = len;
@@ -174,6 +174,10 @@ struct Board {// главное отличие структуры от клас�
                     continue;
                 }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> Lead
                 cout << "Введите направление (U/D/L/R): ";
                 if (!(cin >> dir)) {
                     cin.clear();
@@ -181,7 +185,10 @@ struct Board {// главное отличие структуры от клас�
                     cout << "Ошибка ввода!\n";
                     continue;
                 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> Lead
                 dir = (char)toupper((unsigned char)dir);
 
                 int dr = 0, dc = 0;
@@ -301,7 +308,10 @@ struct Board {// главное отличие структуры от клас�
                 cout << "\nУ вас нет кораблей для перемещения.\n";
                 return;
             }
+<<<<<<< HEAD
 
+=======
+>>>>>>> Lead
             while (true) {
                 cout << "\n===============================\n";
                 cout << "ПЕРЕМЕЩЕНИЕ КОРАБЛЕЙ (Игрок " << playerNum << ")\n";
@@ -400,7 +410,10 @@ struct Board {// главное отличие структуры от клас�
                     cout << "Неизвестное действие.\n";
                     continue;
                 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> Lead
                 if (!canApplyMove(shipIndex, newCells)) {
                     cout << "Нельзя выполнить: выйдет за поле или накроет другой корабль/следы выстрелов.\n";
                     continue;
@@ -497,12 +510,160 @@ public:
         wallet.addMoney(startMoney);
     }
 };
+
+class Shop {
+public:
+    void open(GamePlayer& player, int playerNum) {
+        while (true) {
+            cout << "\n===============================\n";
+            cout << "МАГАЗИН (Игрок " << playerNum << ")\n";
+            cout << "Деньги: " << player.wallet.getMoney() << "\n\n";
+
+            cout << "1. Купить корабль\n";
+            cout << "2. Починить корабль\n";
+            cout << "3. Передвинуть корабль\n";
+            cout << "0. Выйти и стрелять\n";
+
+            int choice;
+            if (!(cin >> choice)) {
+                cin.clear();
+                cin.ignore((numeric_limits<streamsize>::max)(), '\n');
+                continue;
+            }
+
+            if (choice == 0) return;
+            if (choice == 1) buyShip(player);
+            if (choice == 2) repairShip(player);
+            if (choice == 3) moveShip(player, playerNum);
+        }
+    }
+private:
+    void buyShip(GamePlayer& player) {
+        int len;
+        cout << "Длина корабля (1..4): ";
+        if (!(cin >> len)) {
+            cin.clear();
+            cin.ignore((numeric_limits<streamsize>::max)(), '\n');
+            cout << "Ошибка ввода.\n";
+            return;
+        }
+
+        if (len < 1 || len > 4) {
+            cout << "Длина должна быть от 1 до 4.\n";
+            return;
+        }
+
+        int price = player.board.shipPrice(len);
+        if (!player.wallet.canAfford(price)) {
+            cout << "Недостаточно денег.\n";
+            return;
+        }
+
+        int r, c;
+        char dir;
+
+        cout << "Старт (строка столбец): ";
+        if (!(cin >> r >> c)) {
+            cin.clear();
+            cin.ignore((numeric_limits<streamsize>::max)(), '\n');
+            cout << "Ошибка ввода.\n";
+            return;
+        }
+        if (len == 1) {
+            dir = 'R';
+        }
+        else {
+            cout << "Направление (U/D/L/R): ";
+            if (!(cin >> dir)) {
+                cin.clear();
+                cin.ignore((numeric_limits<streamsize>::max)(), '\n');
+                cout << "Ошибка ввода.\n";
+                return;
+            }
+        }
+
+        dir = (char)toupper((unsigned char)dir);
+
+        int dr = 0, dc = 0;
+        if (dir == 'U') dr = -1;
+        else if (dir == 'D') dr = 1;
+        else if (dir == 'L') dc = -1;
+        else if (dir == 'R') dc = 1;
+        else {
+            cout << "Неверное направление.\n";
+            return;
+        }
+
+
+        int x0 = r - 1;
+        int y0 = c - 1;
+        int x1 = x0 + dr * (len - 1);
+        int y1 = y0 + dc * (len - 1);
+
+
+        bool placed = player.board.placeShip(
+            x0, x1,
+            y0, y1,
+            len
+        );
+
+        if (!placed) {
+            cout << "Не удалось разместить корабль.\n";
+        }
+        else {
+            cout << "Корабль успешно куплен и размещён.\n";
+        }
+    }
+
+    void repairShip(GamePlayer& player) {
+        auto& ships = player.board.getShips();
+
+        if (ships.empty()) {
+            cout << "Кораблей нет.\n";
+            return;
+        }
+
+        cout << "Выберите корабль:\n";
+        for (size_t i = 0; i < ships.size(); ++i) {
+            cout << i + 1 << ") длина " << ships[i].coords.size() << "\n";
+        }
+
+        int idx;
+        cin >> idx;
+        idx--;
+
+        int cost = 30;
+        if (!player.wallet.canAfford(cost)) {
+            cout << "Недостаточно денег.\n";
+            return;
+        }
+
+        for (size_t i = 0; i < ships[idx].hits.size(); ++i) {
+            if (ships[idx].hits[i]) {
+                ships[idx].hits[i] = false;
+                player.wallet.spendMoney(cost);
+                cout << "Клетка корабля починена.\n";
+                return;
+            }
+        }
+
+        cout << "Корабль не повреждён.\n";
+    }
+
+    void moveShip(GamePlayer& player, int playerNum) {
+        player.board.moveShipMenu(playerNum);
+    }
+};
+
+
+
 class Game {
 private:
     // Шаг 1: Создаем двух игроков. 
     // Каждый GamePlayer внутри себя содержит Player (кошелек) и Board::DESK (поле).
     GamePlayer p1;
     GamePlayer p2;
+    Shop shop;
 
 public:
     // Шаг 2: Конструктор игры.
@@ -521,7 +682,6 @@ public:
         cout << "n--- ВАШЕ ПОЛЕ ---" << endl;
         // true означает показывать свои корабли ('S')
         activePlayer.board.display(true);
-
         cout << "n--- ПОЛЕ ПРОТИВНИКА ---" << endl;
         // false означает скрывать чужие корабли (заменять 'S' на '.')
         enemyPlayer.board.display(false);
@@ -546,6 +706,15 @@ public:
 
             showInterface(attacker, defender, currentPlayer);
 
+<<<<<<< HEAD
+=======
+            cout << "\nЗайти в магазин? (1 - да, 0 - нет): ";
+            int goShop;
+            cin >> goShop;
+            if (goShop == 1) {
+                shop.open(attacker, currentPlayer);
+            }
+>>>>>>> Lead
             attacker.board.actionMenu(currentPlayer);
 
             // Шаг 5: Ввод координат для выстрела
