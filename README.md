@@ -1,5 +1,5 @@
 ### Sea Battle!
-
+----------------------------------------------
 Place your ships and get ready to sail matey!
 
 In this game a great battle unfolds between two players.
